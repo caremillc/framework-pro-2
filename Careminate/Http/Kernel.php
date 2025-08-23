@@ -5,6 +5,7 @@ namespace Careminate\Http;
 use Careminate\Routing\Router;
 use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
+use Careminate\Routing\Contracts\RouterInterface;
 
 /**
  * HTTP Kernel
@@ -19,9 +20,7 @@ class Kernel
      * 
      * @param Router $router Router instance used for dispatching requests
      */
-    public function __construct(private Router $router)
-    {
-    }
+      public function __construct(private RouterInterface $router){}
 
     /**
      * Handle the incoming HTTP request

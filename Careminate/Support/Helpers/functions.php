@@ -4,7 +4,7 @@ use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
 
 // Just include the file at the top of your script
-require_once __DIR__ . '/debug_functions.php';
+// require_once __DIR__ . '/debug_functions.php';
 
 if (! function_exists('value')) {
     function value(mixed $value, ...$args): mixed
