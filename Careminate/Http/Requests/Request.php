@@ -88,6 +88,11 @@ class Request
         return rtrim(parse_url($this->server['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') ?: '/';
     }
 
+    //  public function getPathInfo(): string
+    // {
+    //     return strtok($this->server['REQUEST_URI'], '?');
+    // }
+
     public function header(string $name): ?string
     {
         return $this->normalizedHeaders[$name] ?? null;
