@@ -230,3 +230,23 @@ if (!function_exists('route_path')) {
         return !is_null($file) ? config('route.path') . '/' . $file : config('route.path');
     }
 }
+
+if (!function_exists('view')) {
+    function view(string $template, array $parameters = [], ?Response $response = null): Response
+    {
+        // Access the global container
+        global $container;
+
+        // Make sure the container is set
+        if (!isset($container)) {
+            throw new RuntimeException('Container is not set.');
+        }
+
+        $content = $container->get('twig')->render($template, $parameters);
+
+        $response ??= new Response();
+        $response->setContent($content);
+
+        return $response;
+    }
+}
