@@ -2,6 +2,7 @@
 namespace Careminate\Http;
 
 use Careminate\Routing\Route;
+use Doctrine\DBAL\Connection;
 use Careminate\Http\Requests\Request;
 use Psr\Container\ContainerInterface;
 use Careminate\Http\Responses\Response;
@@ -36,15 +37,17 @@ class Kernel
     public function handle(Request $request): Response
     {
         try {
-            [$handler, $vars] = $this->router->dispatch($request, $this->container);
+             dd($this->container->get(Connection::class));
+             
+            [$routeHandler, $vars] = $this->router->dispatch($request, $this->container);
 
             // Validate that the routeHandler is actually callable
-            if (!is_callable($handler)) {
+            if (!is_callable($routeHandler)) {
                 throw new HttpException('Route handler is not callable', 500);
             }
             
             $args     = array_values($vars);
-            $response = call_user_func_array($handler, $args);
+            $response = call_user_func_array($routeHandler, $args);
 
            // Ensure the response is actually a Response object
             if (!$response instanceof Response) {

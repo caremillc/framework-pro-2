@@ -231,6 +231,13 @@ if (!function_exists('route_path')) {
     }
 }
 
+if (! function_exists('storage_path')) {
+   function storage_path(string $path = ''): string
+    {
+        return BASE_PATH . '/storage' . ($path ? '/' . ltrim($path, '/') : '');
+    }
+}
+
 if (!function_exists('view')) {
     function view(string $template, array $parameters = [], ?Response $response = null): Response
     {
