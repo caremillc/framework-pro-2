@@ -1,49 +1,57 @@
-<?php declare(strict_types=1);
-
+<?php declare (strict_types = 1);
 namespace Careminate\Http;
 
-use Careminate\Routing\Router;
 use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
 use Careminate\Routing\Contracts\RouterInterface;
+use Careminate\Routing\Route;
+use Psr\Container\ContainerInterface;
 
-/**
- * HTTP Kernel
- * 
- * The Kernel class serves as the central point for handling incoming HTTP requests
- * and returning the appropriate responses by dispatching them through the router.
- */
 class Kernel
 {
-    /**
-     * Create a new Kernel instance
-     * 
-     * @param Router $router Router instance used for dispatching requests
-     */
-      public function __construct(private RouterInterface $router){}
+    public function __construct(
+        private RouterInterface $router,
+        private ContainerInterface $container
+    ) {}
 
-    /**
-     * Handle the incoming HTTP request
-     * 
-     * Dispatches the request through the router, executes the appropriate handler,
-     * and returns the resulting response. Catches any exceptions and returns them
-     * as error responses.
-     * 
-     * @param Request $request The incoming HTTP request
-     * @return Response The HTTP response
-     */
     public function handle(Request $request): Response
     {
         try {
+            [$handler, $vars] = $this->router->dispatch($request, $this->container);
 
-            [$routeHandler, $vars] = $this->router->dispatch($request);
-            
-            $response = call_user_func_array($routeHandler, $vars);
+            $args     = array_values($vars);
+            $response = call_user_func_array($handler, $args);
 
-        } catch (\Exception $exception) {
-            $response = new Response($exception->getMessage(), 400);
+            if (! $response instanceof Response) {
+                $response = new Response((string) $response);
+            }
+
+        } catch (\Exception $e) {
+            $response = new Response($e->getMessage(), 400);
         }
-        
+
         return $response;
+    }
+
+    public function boot(): void
+    {
+        $this->registerRoutes();
+    }
+
+    protected function registerRoutes(): void
+    {
+        foreach (['web', 'api', 'console'] as $file) {
+            $this->loadRouteFile($file);
+        }
+
+        $this->router->setRoutes(Route::getRoutes());
+    }
+
+    protected function loadRouteFile(string $name): void
+    {
+        $path = BASE_PATH . "/routes/{$name}.php";
+        if (file_exists($path)) {
+            require $path;
+        }
     }
 }
