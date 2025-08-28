@@ -90,6 +90,10 @@ class Request
 
     //  public function getPathInfo(): string
     // {
+    //     return rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/') ?: '/';
+    // }
+    //  public function getPathInfo(): string
+    // {
     //     return strtok($this->server['REQUEST_URI'], '?');
     // }
 
