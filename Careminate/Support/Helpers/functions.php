@@ -4,7 +4,20 @@ use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
 
 // Just include the file at the top of your script
-require_once __DIR__ . '/debug_functions.php';
+// require_once __DIR__ . '/debug_functions.php';
+
+// if (!function_exists('dd')) {
+//     function dd(...$vars): void
+//     {
+//         foreach ($vars as $v) {
+//             echo '<pre>';
+//             var_dump($v);
+//             echo '</pre>';
+//         }
+//         die(1);
+//     }
+// }
+
 
 if (! function_exists('value')) {
     function value(mixed $value, ...$args): mixed
@@ -219,17 +232,6 @@ if (!function_exists('text')) {
 /**
  * Dump and die (debugging helper).
  */
-if (!function_exists('dd')) {
-    function dd(...$vars): void
-    {
-        foreach ($vars as $v) {
-            echo '<pre>';
-            var_dump($v);
-            echo '</pre>';
-        }
-        die(1);
-    }
-}
 
 /**
  * End Response Helper Function
@@ -269,3 +271,30 @@ if (!function_exists('route_path')) {
  */
 
 
+/**
+ *  Start Views
+ */
+
+if (!function_exists('view')) {
+    function view(string $template, array $parameters = [], ?Response $response = null): Response
+    {
+        // Access the global container
+        global $container;
+
+        // Make sure the container is set
+        if (!isset($container)) {
+            throw new RuntimeException('Container is not set.');
+        }
+
+        $content = $container->get('twig')->render($template, $parameters);
+
+        $response ??= new Response();
+        $response->setContent($content);
+
+        return $response;
+    }
+}
+
+/**
+ * End Views
+ */
