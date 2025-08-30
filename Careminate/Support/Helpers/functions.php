@@ -2,6 +2,7 @@
 
 use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
+use Careminate\View\Engines\ViewManager;
 
 // Just include the file at the top of your script
 // require_once __DIR__ . '/debug_functions.php';
@@ -247,6 +248,27 @@ if (!function_exists('base_path')) {
     }
 }
 
+// if (! function_exists('base_path')) {
+//     function base_path(string $path = ''): string
+//     {
+//         return dirname(__DIR__, 2) . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+//     }
+// }
+
+if (! function_exists('storage_path')) {
+    function storage_path(string $path = ''): string
+    {
+        return base_path('storage') . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (! function_exists('bootstrap_path')) {
+    function bootstrap_path(string $path = ''): string
+    {
+        return base_path('bootstrap') . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
 if (!function_exists('config')) {
     function config(?string $file = null)
     {
@@ -266,6 +288,41 @@ if (!function_exists('route_path')) {
     }
 }
 
+if (! function_exists('resource_path')) {
+    function resource_path(string $path = ''): string
+    {
+        return base_path('templates/views') . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (! function_exists('public_path')) {
+    function public_path(string $path = ''): string
+    {
+        return base_path('public') . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (! function_exists('app_path')) {
+    function app_path(string $path = ''): string
+    {
+        return base_path('app') . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (!function_exists('asset')) {
+    function asset(string $path): string
+    {
+        // Base URL from env or fallback to localhost
+        $baseUrl = rtrim(env('APP_URL', 'http://localhost/caremi-pro-2'), '/');
+
+        // Ensure no leading slash in path
+        $path = ltrim($path, '/');
+
+        return $baseUrl . '/' . $path;
+    }
+}
+
+
 /**
  * End paths
  */
@@ -275,26 +332,38 @@ if (!function_exists('route_path')) {
  *  Start Views
  */
 
-if (!function_exists('view')) {
-    function view(string $template, array $parameters = [], ?Response $response = null): Response
-    {
-        // Access the global container
-        global $container;
+// if (!function_exists('view')) {
+//     function view(string $template, array $parameters = [], ?Response $response = null): Response
+//     {
+//         // Access the global container
+//         global $container;
 
-        // Make sure the container is set
-        if (!isset($container)) {
-            throw new RuntimeException('Container is not set.');
+//         // Make sure the container is set
+//         if (!isset($container)) {
+//             throw new RuntimeException('Container is not set.');
+//         }
+
+//         $content = $container->get('twig')->render($template, $parameters);
+
+//         $response ??= new Response();
+//         $response->setContent($content);
+
+//         return $response;
+//     }
+// }
+
+if (! function_exists('view')) {
+    function view(string $view, array $data = []): string {
+        static $manager;
+        if (!$manager) {
+            // Move up from framework-pro-2 to project root
+            $basePath = dirname(__DIR__, 4); // Careminate\Support\Helpers → go up 3
+            $config = require $basePath . '/config/view.php';
+            $manager = new ViewManager($config);
         }
-
-        $content = $container->get('twig')->render($template, $parameters);
-
-        $response ??= new Response();
-        $response->setContent($content);
-
-        return $response;
+        return $manager->render($view, $data);
     }
 }
-
 /**
  * End Views
  */
