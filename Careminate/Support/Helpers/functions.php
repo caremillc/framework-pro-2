@@ -1,6 +1,7 @@
 <?php declare (strict_types = 1);
 
 use Careminate\Http\Requests\Request;
+use Careminate\Http\Responses\Response;
 
 // Just include the file at the top of your script
 require_once __DIR__ . '/debug_functions.php';
@@ -135,4 +136,70 @@ if (!function_exists('request_header')) {
 
 
 
+/**
+ *  Start Response Helper functions
+ */
+
+
+/**
+ * Return a new Response instance with given content.
+ */
+if (!function_exists('response')) {
+    function response(string $content = '', int $status = 200, array $headers = []): Response
+    {
+        return new Response(content: $content, status: $status, headers: $headers);
+    }
+}
+
+/**
+ * Return a JSON response.
+ */
+if (!function_exists('json')) {
+    function json(array|object $data = [], int $status = 200, array $headers = []): Response
+    {
+        $headers = array_merge(['Content-Type' => 'application/json'], $headers);
+        return new Response(content: json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), status: $status, headers: $headers);
+    }
+}
+
+/**
+ * Return a redirect response.
+ */
+if (!function_exists('redirect')) {
+    function redirect(string $url, int $status = 302, array $headers = []): Response
+    {
+        $headers = array_merge(['Location' => $url], $headers);
+        return new Response(content: '', status: $status, headers: $headers);
+    }
+}
+
+/**
+ * Return a plain text response.
+ */
+if (!function_exists('text')) {
+    function text(string $content, int $status = 200, array $headers = []): Response
+    {
+        $headers = array_merge(['Content-Type' => 'text/plain; charset=utf-8'], $headers);
+        return new Response(content: $content, status: $status, headers: $headers);
+    }
+}
+
+/**
+ * Dump and die (debugging helper).
+ */
+if (!function_exists('dd')) {
+    function dd(...$vars): void
+    {
+        foreach ($vars as $v) {
+            echo '<pre>';
+            var_dump($v);
+            echo '</pre>';
+        }
+        die(1);
+    }
+}
+
+/**
+ * End Response Helper Function
+ */
 
