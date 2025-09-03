@@ -6,6 +6,25 @@ use Careminate\Http\Responses\Response;
 // Just include the file at the top of your script
 require_once __DIR__ . '/debug_functions.php';
 
+/**
+ * Dump and die (debugging helper).
+ */
+if (!function_exists('dd')) {
+    function dd(...$vars): void
+    {
+        foreach ($vars as $v) {
+            echo '<pre>';
+            var_dump($v);
+            echo '</pre>';
+        }
+        die(1);
+    }
+}
+
+/**
+ * End Response Helper Function
+ */
+
 if (! function_exists('value')) {
     function value(mixed $value, ...$args): mixed
     {
@@ -184,22 +203,37 @@ if (!function_exists('text')) {
     }
 }
 
+
+
 /**
- * Dump and die (debugging helper).
+ * start paths
  */
-if (!function_exists('dd')) {
-    function dd(...$vars): void
+if (!function_exists('base_path')) {
+    function base_path(?string $file = null)
     {
-        foreach ($vars as $v) {
-            echo '<pre>';
-            var_dump($v);
-            echo '</pre>';
+        return  ROOT_DIR . '/../' . $file;
+    }
+}
+
+if (!function_exists('config')) {
+    function config(?string $file = null)
+    {
+        $seprate = explode('.', $file);
+        if ((!empty($seprate) && count($seprate) > 1) && !is_null($file)) {
+            $file = include base_path('config/') . $seprate[0] . '.php';
+            return isset($file[$seprate[1]]) ? $file[$seprate[1]] : $file;
         }
-        die(1);
+        return $file;
+    }
+}
+
+if (!function_exists('route_path')) {
+    function route_path(?string $file = null)
+    {
+        return !is_null($file) ? config('route.path') . '/' . $file : config('route.path');
     }
 }
 
 /**
- * End Response Helper Function
+ * End paths
  */
-
