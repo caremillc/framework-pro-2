@@ -88,6 +88,7 @@ class Request
         return rtrim(parse_url($this->server['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') ?: '/';
     }
 
+    
     //  public function getPathInfo(): string
     // {
     //     return strtok($this->server['REQUEST_URI'], '?');
