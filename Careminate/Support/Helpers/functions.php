@@ -4,7 +4,26 @@ use Careminate\Http\Requests\Request;
 use Careminate\Http\Responses\Response;
 
 // Just include the file at the top of your script
-require_once __DIR__ . '/debug_functions.php';
+//require_once __DIR__ . '/debug_functions.php';
+
+/**
+ * Dump and die (debugging helper).
+ */
+// if (!function_exists('dd')) {
+//     function dd(...$vars): void
+//     {
+//         foreach ($vars as $v) {
+//             echo '<pre>';
+//             var_dump($v);
+//             echo '</pre>';
+//         }
+//         die(1);
+//     }
+// }
+
+/**
+ * End Response Helper Function
+ */
 
 if (!function_exists('env')) {
     /**
@@ -217,24 +236,6 @@ if (!function_exists('text')) {
     }
 }
 
-/**
- * Dump and die (debugging helper).
- */
-if (!function_exists('dd')) {
-    function dd(...$vars): void
-    {
-        foreach ($vars as $v) {
-            echo '<pre>';
-            var_dump($v);
-            echo '</pre>';
-        }
-        die(1);
-    }
-}
-
-/**
- * End Response Helper Function
- */
 
 
 /**
