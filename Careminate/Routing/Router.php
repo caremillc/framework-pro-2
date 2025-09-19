@@ -5,70 +5,60 @@ namespace Careminate\Routing;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use Careminate\Http\Requests\Request;
+use Psr\Container\ContainerInterface;
+use Careminate\Http\Responses\Response;
 use Careminate\Exceptions\HttpException;
+use function FastRoute\simpleDispatcher;
 use Careminate\Routing\Contracts\RouterInterface;
 use Careminate\Exceptions\HttpRequestMethodException;
-use Careminate\Http\Responses\Response;
-use function FastRoute\simpleDispatcher;
 
 class Router implements RouterInterface
 {
-    public function dispatch(Request $request): array
+     private array $routes;
+    
+    public function setRoutes(array $routes): void
+    {
+        //$routes is parsed from setRoutes in $container
+        $this->routes = $routes;
+    }
+ // private array $routes;
+    public function dispatch(Request $request, ContainerInterface $container): array
     {
         $routeInfo = $this->extractRouteInfo($request);
 
-        // If routeInfo is null (favicon or ignored route), return a no-content response
+        // If routeInfo is null (e.g., for favicon or similar), short-circuit gracefully
         if ($routeInfo === null) {
-            return [[fn() => new Response('', 204), '__invoke'], []];
+            return [[fn() => new \Careminate\Http\Responses\Response('', 204), '__invoke'], []];
         }
 
         [$handler, $vars] = $routeInfo;
 
-        /**
-         * 🔹 Case 1: Closure route
-         * Example: Route::get('/hello', fn($name) => new Response(...));
-         */
+        // 🔹 Case 1: Closure
         if ($handler instanceof \Closure) {
             return [[$handler, '__invoke'], $vars];
         }
 
-        /**
-         * 🔹 Case 2: Controller + method
-         * Example: Route::get('/', [HomeController::class, 'index']);
-         */
-        if (is_array($handler) && isset($handler[0], $handler[1])) {
+        // 🔹 Case 2: [Controller::class, 'method']
+        if (is_array($handler) && count($handler) === 2 && is_string($handler[0]) && is_string($handler[1])) {
             [$controller, $method] = $handler;
 
-            if (!class_exists($controller)) {
-                throw new \InvalidArgumentException("Controller {$controller} does not exist.");
-            }
-            if (!method_exists($controller, $method)) {
-                throw new \InvalidArgumentException("Method {$method} not found in controller {$controller}.");
-            }
+            // Use the container to resolve the controller (with dependencies)
+            $controllerInstance = $container->get($controller);
 
-            return [[new $controller, $method], $vars];
+            return [[$controllerInstance, $method], $vars];
         }
 
-        /**
-         * 🔹 Case 3: Single-action controller
-         * Example: Route::get('/contact', [InvokeController::class]);
-         * Will map to __invoke()
-         */
-        if (is_array($handler) && isset($handler[0]) && is_string($handler[0]) && !isset($handler[1])) {
-            $controller = $handler[0];
-
-            if (!class_exists($controller)) {
-                throw new \InvalidArgumentException("Controller {$controller} does not exist.");
+          // 🔹 Case 3: Single-action controller (uses __invoke)
+        if (is_string($handler) && class_exists($handler)) {
+            $controller = new $handler();
+            if (method_exists($controller, '__invoke')) {
+                return [[$controller, '__invoke'], $vars];
             }
-            if (!method_exists($controller, '__invoke')) {
-                throw new \InvalidArgumentException("Controller {$controller} must implement __invoke() for single-action usage.");
-            }
-
-            return [[new $controller, '__invoke'], $vars];
         }
 
         throw new \InvalidArgumentException('Invalid route handler definition.');
     }
+
 
     private function extractRouteInfo(Request $request): array|null
     {
