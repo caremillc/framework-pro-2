@@ -235,3 +235,98 @@ if (!function_exists('dd')) {
 /**
  * End Response Helper Function
  */
+
+
+/**
+ * start paths
+ */
+ if (! function_exists('public_path')) {
+    function public_path(?string $file = null): string
+    {
+        return base_path('public' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (!function_exists('base_path')) {
+    function base_path(string $path = ''): string
+    {
+        return BASE_PATH . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (! function_exists('app_path')) {
+    function app_path(?string $file = null): string
+    {
+        return base_path('app' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('config_path')) {
+    function config_path(?string $file = null): string
+    {
+        return base_path('config' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('storage_path')) {
+    function storage_path(?string $file = null): string
+    {
+        return base_path('storage' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('resource_path')) {
+    function resource_path(?string $file = null): string
+    {
+        return base_path('resources' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (!function_exists('route_path')) {
+    function route_path(string $path = ''): string
+    {
+        return base_path('routes' . ($path ? DIRECTORY_SEPARATOR . $path : $path));
+    }
+}
+
+
+
+if (!function_exists('config')) {
+    function config(string $key, $default = null)
+    {
+        static $config = null;
+        
+        if ($config === null) {
+            $configPath = base_path('config');
+            $config = [];
+            
+            foreach (glob($configPath . '/*.php') as $file) {
+                $name = pathinfo($file, PATHINFO_FILENAME);
+                $config[$name] = require $file;
+            }
+        }
+        
+        return array_get($config, $key, $default);
+    }
+}
+
+if (!function_exists('array_get')) {
+    function array_get(array $array, string $key, $default = null)
+    {
+        if (isset($array[$key])) {
+            return $array[$key];
+        }
+        
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return $default;
+            }
+            $array = $array[$segment];
+        }
+        
+        return $array;
+    }
+}
+/**
+ * End paths
+ */
