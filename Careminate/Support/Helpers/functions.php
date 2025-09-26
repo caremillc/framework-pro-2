@@ -1,5 +1,6 @@
 <?php declare (strict_types = 1);
 
+use Careminate\Logging\Logger;
 use Careminate\Http\Requests\Request;
 
 // Just include the file at the top of your script
@@ -174,3 +175,132 @@ if (!function_exists('request_header')) {
     }
 }
 
+/**
+ * start paths
+ */
+ if (! function_exists('public_path')) {
+    function public_path(?string $file = null): string
+    {
+        return base_path('public' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (!function_exists('base_path')) {
+    function base_path(string $path = ''): string
+    {
+        return BASE_PATH . ($path ? DIRECTORY_SEPARATOR . $path : $path);
+    }
+}
+
+if (! function_exists('app_path')) {
+    function app_path(?string $file = null): string
+    {
+        return base_path('app' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('config_path')) {
+    function config_path(?string $file = null): string
+    {
+        return base_path('config' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('storage_path')) {
+    function storage_path(?string $file = null): string
+    {
+        return base_path('storage' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (! function_exists('resource_path')) {
+    function resource_path(?string $file = null): string
+    {
+        return base_path('resources' . ($file ? '/' . $file : ''));
+    }
+}
+
+if (!function_exists('route_path')) {
+    function route_path(string $path = ''): string
+    {
+        return base_path('routes' . ($path ? DIRECTORY_SEPARATOR . $path : $path));
+    }
+}
+
+if (!function_exists('config')) {
+    function config(string $key, $default = null)
+    {
+        static $config = null;
+        
+        if ($config === null) {
+            $configPath = base_path('config');
+            $config = [];
+            
+            foreach (glob($configPath . '/*.php') as $file) {
+                $name = pathinfo($file, PATHINFO_FILENAME);
+                $config[$name] = require $file;
+            }
+        }
+        
+        return array_get($config, $key, $default);
+    }
+}
+
+if (!function_exists('array_get')) {
+    function array_get(array $array, string $key, $default = null)
+    {
+        if (isset($array[$key])) {
+            return $array[$key];
+        }
+        
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return $default;
+            }
+            $array = $array[$segment];
+        }
+        
+        return $array;
+    }
+}
+
+
+if (!function_exists('logger')) {
+    function logger(?string $channel = null): Logger
+    {
+        static $instances = [];
+        $config = config('log');
+        $channel = $channel ?? $config['default'] ?? 'default';
+
+        if (!isset($instances[$channel])) {
+            $chanConf = $config['channels'][$channel] ?? [];
+            $chanConf['channel'] = $channel;
+            $instances[$channel] = new Logger($chanConf);
+        }
+
+        return $instances[$channel];
+    }
+}
+
+if (!function_exists('logException')) {
+    function logException(Throwable $e, ?string $channel = null): void
+    {
+        $config = config('log');
+        $exceptionMap = $config['exception_map'] ?? [];
+        $level = 'error';
+        $ch = $channel ?? $config['default'] ?? 'default';
+
+        foreach ($exceptionMap as $class => [$lvl, $logChannel, $alert]) {
+            if ($e instanceof $class) { $level = $lvl; $ch = $logChannel; break; }
+        }
+
+        $context = [
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+            'code'  => $e->getCode(),
+            'trace' => $e->getTraceAsString(),
+        ];
+
+        logger($ch)->{$level}($e->getMessage(), $context);
+    }
+}
