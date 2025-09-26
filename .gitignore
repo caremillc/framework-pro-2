@@ -1,0 +1,5 @@
+#folders 
+/vendor/
+
+#files
+composer.lock
