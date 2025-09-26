@@ -126,4 +126,101 @@ class Str
         $title = mb_strtolower($title);
         return $title;
     }
+    function slugify(string $text, array $opts = []): string
+    {
+          /**
+     * Create a URL-friendly slug from a string.
+     *
+     * @param string $text   Input text
+     * @param array  $opts   Options:
+     *                       - separator (string) default '-'
+     *                       - limit (int|null) max length, default null
+     *                       - lowercase (bool) default true
+     *                       - transliterate (bool) default true
+     *                       - ascii (bool) default true (if false keeps Unicode letters)
+     *                       - locale (string|null) locale for lowercasing
+     *
+     * @return string
+     */
+
+        $options = array_merge([
+            'separator'     => '-',
+            'limit'         => null,
+            'lowercase'     => true,
+            'transliterate' => true,
+            'ascii'         => true,
+            'locale'        => null,
+        ], $opts);
+
+        $sep          = $options['separator'];
+        $limit        = $options['limit'];
+        $lowercase    = $options['lowercase'];
+        $transliterate= $options['transliterate'];
+        $asciiOnly    = $options['ascii'];
+        $locale       = $options['locale'];
+
+        // Normalize unicode (NFKD) if intl Normalizer available
+        if (extension_loaded('intl') && class_exists(\Normalizer::class)) {
+            $normalized = \Normalizer::normalize($text, \Normalizer::FORM_KD);
+            if ($normalized !== false) {
+                $text = $normalized;
+            }
+        }
+
+        // Transliteration (Latin → ASCII)
+        if ($transliterate) {
+            if (function_exists('transliterator_transliterate')) {
+                $try = @transliterator_transliterate(
+                    'Any-Latin; Latin-ASCII; [:Nonspacing Mark:] Remove;',
+                    $text
+                );
+                if ($try !== false && $try !== null) {
+                    $text = $try;
+                }
+            } elseif (function_exists('iconv')) {
+                $try = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+                if ($try !== false && $try !== null) {
+                    $text = $try;
+                }
+            }
+        }
+
+        // Remove combining marks
+        $text = preg_replace('/\p{M}/u', '', $text) ?? $text;
+
+        if ($asciiOnly) {
+            // Keep only ASCII letters, numbers, separators
+            $text = preg_replace('/[^A-Za-z0-9\/_|+\- ]+/', '', $text) ?? $text;
+            $text = preg_replace('/[\/_|+\- ]+/', $sep, $text) ?? $text;
+        } else {
+            // Keep any Unicode letters & numbers
+            $text = preg_replace('/[^\p{L}\p{N}\/_|+\- ]+/u', '', $text) ?? $text;
+            $text = preg_replace('/[\/_|+\- ]+/u', $sep, $text) ?? $text;
+        }
+
+        $text = trim($text, $sep);
+
+        // Apply limit if set
+        if ($limit !== null && $limit > 0) {
+            if (function_exists('mb_substr')) {
+                $text = mb_substr($text, 0, $limit);
+            } else {
+                $text = substr($text, 0, $limit);
+            }
+            $text = trim($text, $sep);
+        }
+
+        // Lowercase
+        if ($lowercase) {
+            if ($locale !== null && function_exists('mb_strtolower')) {
+                $text = mb_strtolower($text, $locale);
+            } else {
+                $text = function_exists('mb_strtolower') ? mb_strtolower($text) : strtolower($text);
+            }
+        }
+
+        return $text === '' ? 'n-a' : $text;
+    }
 }
+
+
