@@ -197,7 +197,7 @@ if (!function_exists('request_header')) {
  if (! function_exists('public_path')) {
     function public_path(?string $file = null): string
     {
-        return base_path('public' . ($file ? '/' . $file : ''));
+        return base_path('public' . ($file ? DIRECTORY_SEPARATOR . $file : ''));
     }
 }
 
@@ -211,28 +211,28 @@ if (!function_exists('base_path')) {
 if (! function_exists('app_path')) {
     function app_path(?string $file = null): string
     {
-        return base_path('app' . ($file ? '/' . $file : ''));
+        return base_path('app' . ($file ? DIRECTORY_SEPARATOR . $file : ''));
     }
 }
 
 if (! function_exists('config_path')) {
     function config_path(?string $file = null): string
     {
-        return base_path('config' . ($file ? '/' . $file : ''));
+        return base_path('config' . ($file ? DIRECTORY_SEPARATOR . $file : ''));
     }
 }
 
 if (! function_exists('storage_path')) {
     function storage_path(?string $file = null): string
     {
-        return base_path('storage' . ($file ? '/' . $file : ''));
+        return base_path('storage' . ($file ? DIRECTORY_SEPARATOR . $file : ''));
     }
 }
 
 if (! function_exists('resource_path')) {
     function resource_path(?string $file = null): string
     {
-        return base_path('resources' . ($file ? '/' . $file : ''));
+        return base_path('resources' . ($file ? DIRECTORY_SEPARATOR . $file : ''));
     }
 }
 
